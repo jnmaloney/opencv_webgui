@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>OpenCV GUI</title>
+<style>
+  body {
+    font-family: arial;
+    margin: 0;
+    padding: none;
+  }
+
+  .emscripten { padding-right: 0; margin-left: auto; margin-right: auto; display: block; }
+  div.emscripten { text-align: center; }
+  div.emscripten_border { border: none; float: left; }
+  /* the canvas *must not* have any border or padding, or mouse coords will be wrong */
+  canvas.emscripten { border: 0px none; background-color: black; }
+</style>
+</head>
+<body bgcolor="#005c9f">
+<p id="status">OpenCV.js is loading...</p>
+
+<div  style="width: 100%; overflow: hidden;">
+<div class="emscripten_border">
+  <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+</div>
+<div class="inputoutput">
+  <canvas id="canvasOutput" ></canvas>
+  <div class="caption">canvasOutput</div>
+</div>
+</div>
+<!-- <p><button onclick="goFullScreen();">Go Fullscreen</button></p> -->
+
+<div>
+  <div class="inputoutput">
+    <img id="imageSrc" alt="No Image" src="bsc.jpeg" />
+    <div class="caption">imageSrc <input type="file" id="fileInput" name="file" /></div>
+  </div>
+</div>
+
+<textarea id="output" rows="8"></textarea>
+
+<script type="text/javascript">
+let imgLoaded = false;
+let imgElement = document.getElementById('imageSrc');
+let inputElement = document.getElementById('fileInput');
+inputElement.addEventListener('change', (e) => {
+  imgElement.src = URL.createObjectURL(e.target.files[0]);
+}, false);
+imgElement.onload = function() {
+  imgLoaded = true;
+  applyFilter();
+};
+
+function applyFilter() {
+  if (!imgLoaded) return;
+  //let mat = cv.imread(imgElement);
+  //cv.imshow('canvasOutput', mat);
+  //mat.delete();
+
+  let src = cv.imread(imgElement);
+  let dst = new cv.Mat();
+
+  // You can try more different parameters
+
+  // Colour range clipping
+  // let low = new cv.Mat(src.rows, src.cols, src.type(), [0, 0, 0, 0]);
+  // let high = new cv.Mat(src.rows, src.cols, src.type(), [150, 150, 150, 255]);
+  // eval("cv.inRange(src, low, high, dst);"); // src -> src
+  eval(document.getElementById('output').value);
+
+  cv.imshow('canvasOutput', dst);
+  src.delete(); dst.delete();
+};
+function onOpenCvReady() {
+  document.getElementById('status').innerHTML = 'OpenCV.js is ready.';
+}
+</script>
+<script src="opencv.js" onload="onOpenCvReady();" type="text/javascript"></script>
+
+
+
+    <script type='text/javascript'>
+    	function goFullScreen(){
+    	    Module.requestFullscreen(false, true);
+    	}
+
+      // ImGui Module
+      var Module = {
+        preRun: [],
+        postRun: [],
+        print:
+            	(function() {
+                      var element = document.getElementById('output');
+                      return function(text) {
+                        if (element) element.value = ''; // clear browser cache
+                        if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+                        if (element) {
+                          element.value += text + "\n";
+                          element.scrollTop = element.scrollHeight; // focus on bottom
+                        }
+
+                        // Do the thing
+                        applyFilter();
+                      };
+                    })(),
+
+        printErr: function(text){},
+        canvas: (function() {
+          var canvas = document.getElementById('canvas');
+
+          // As a default initial behavior, pop up an alert when webgl context is lost. To make your
+          // application robust, you may want to override this behavior before shipping!
+          // See http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.15.2
+          canvas.addEventListener("webglcontextlost", function(e) { alert('WebGL context lost. You will need to reload the page.'); e.preventDefault(); }, false);
+
+          return canvas;
+        })(),
+        setStatus: function(text) {},
+        totalDependencies: 0,
+        monitorRunDependencies: function(left) {
+          this.totalDependencies = Math.max(this.totalDependencies, left);
+        }
+      };
+    </script>
+    <script async type="text/javascript" src="themayor.js"></script>
+
+</body>
+</html>
